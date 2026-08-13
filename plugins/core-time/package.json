@@ -1,0 +1,11 @@
+{
+  "name": "@trf-plugin/core-time",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@trf/plugin-sdk": "workspace:*",
+    "@trf/shared": "workspace:*"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "id": "core-vwap",
+  "name": "VWAP de sesión",
+  "version": "1.0.0",
+  "author": "TRF core",
+  "description": "VWAP anclado a la sesión, distancia del precio al VWAP en puntos y en ATRs, y lado respecto al VWAP.",
+  "apiVersion": 1,
+  "kind": ["feature"],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": ["volatility.atr"],
+    "warmupBars": 30
+  },
+  "provides": ["vwap.value", "vwap.distance", "vwap.distanceAtr", "vwap.side"],
+  "config": {},
+  "enabledByDefault": true
+}

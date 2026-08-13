@@ -1,0 +1,38 @@
+{
+  "id": "nas100-open",
+  "name": "Apertura del NAS100: impulso y reversión",
+  "version": "1.0.0",
+  "author": "TRF research",
+  "description": "Primera línea de investigación: rango de apertura, dirección del impulso inicial, movimiento contrario, retroceso desde el extremo y reversión sobre la apertura diaria.",
+  "apiVersion": 1,
+  "kind": ["feature"],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": ["volatility.atr"],
+    "warmupBars": 60
+  },
+  "provides": [
+    "nas100.minutesSinceOpen",
+    "nas100.openingRangeHigh",
+    "nas100.openingRangeLow",
+    "nas100.openingRangeSizeAtr",
+    "nas100.openingRangeComplete",
+    "nas100.impulseDirection",
+    "nas100.impulseSizeAtr",
+    "nas100.breakoutSide",
+    "nas100.minutesSinceBreakout",
+    "nas100.excursionWithImpulseAtr",
+    "nas100.excursionAgainstImpulseAtr",
+    "nas100.pullbackFromExtremeAtr",
+    "nas100.pullbackFraction",
+    "nas100.crossedBackOpen",
+    "nas100.minutesToOpenCross",
+    "nas100.distanceToRangeMidAtr"
+  ],
+  "config": {
+    "openingRangeMinutes": 15,
+    "sessionOpenMinute": 570
+  },
+  "enabledByDefault": true
+}

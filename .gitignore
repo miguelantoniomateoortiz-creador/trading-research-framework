@@ -1,0 +1,30 @@
+node_modules/
+dist/
+.next/
+out/
+*.tsbuildinfo
+
+# Base de datos local y artefactos de análisis
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+/data/db/
+/data/cache/
+/data/imports/
+!/data/samples/
+
+.env
+.env.local
+.DS_Store
+coverage/
+.vitest/
+
+# CSVs descargados/generados y logs de sesiones de desarrollo: pesan mucho y
+# se pueden volver a generar/descargar, no aportan como historial de código.
+/downloads/
+/logs/
+
+# Artefactos sueltos de pruebas de permisos (archivos vacíos de depuración).
+/_perm_test_file
+/_tmp_*

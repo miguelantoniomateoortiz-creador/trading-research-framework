@@ -1,0 +1,35 @@
+{
+  "id": "entry-scalp-sampler",
+  "name": "Scalping — muestreo sistemático",
+  "version": "1.0.0",
+  "author": "TRF core",
+  "description": "Abre una operación long y una short cada N minutos durante la sesión, con TP y SL simétricos. Deliberadamente TONTO: no filtra nada, sólo genera muchas observaciones para que Discovery busque después con las 70 variables.",
+  "apiVersion": 1,
+  "kind": [
+    "entry"
+  ],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": [],
+    "warmupBars": 0
+  },
+  "provides": [],
+  "config": {
+    "intervalMinutes": 15,
+    "sessionStartMinute": 570,
+    "sessionEndMinute": 960,
+    "direction": "both",
+    "takeProfitPoints": 20,
+    "stopLossPoints": 20,
+    "maxHoldMinutes": 30,
+    "daysOfWeek": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "enabledByDefault": false
+}

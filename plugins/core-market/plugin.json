@@ -1,0 +1,34 @@
+{
+  "id": "core-market",
+  "name": "Estructura de mercado diaria",
+  "version": "1.0.0",
+  "author": "TRF core",
+  "description": "Apertura diaria, gap respecto al cierre anterior, niveles del día previo y volumen relativo.",
+  "apiVersion": 1,
+  "kind": ["feature"],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": ["volatility.atr"],
+    "warmupBars": 60
+  },
+  "provides": [
+    "market.dailyOpen",
+    "market.gapPoints",
+    "market.gapAtr",
+    "market.distanceToOpenAtr",
+    "market.prevDayHigh",
+    "market.prevDayLow",
+    "market.prevDayClose",
+    "market.prevDayRange",
+    "market.distanceToPrevHighAtr",
+    "market.distanceToPrevLowAtr",
+    "market.dayRangeUsed",
+    "market.volume",
+    "market.relativeVolume"
+  ],
+  "config": {
+    "volumeAverageBars": 60
+  },
+  "enabledByDefault": true
+}

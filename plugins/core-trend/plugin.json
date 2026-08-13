@@ -1,0 +1,33 @@
+{
+  "id": "core-trend",
+  "name": "Tendencia (EMAs)",
+  "version": "1.0.0",
+  "author": "TRF core",
+  "description": "EMA20/50/200, distancias normalizadas por ATR, pendientes y alineación de medias.",
+  "apiVersion": 1,
+  "kind": ["feature"],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": ["volatility.atr"],
+    "warmupBars": 250
+  },
+  "provides": [
+    "trend.ema20",
+    "trend.ema50",
+    "trend.ema200",
+    "trend.distanceEma20Atr",
+    "trend.distanceEma200Atr",
+    "trend.slopeEma20",
+    "trend.slopeEma50",
+    "trend.slopeEma200",
+    "trend.alignment"
+  ],
+  "config": {
+    "fastPeriod": 20,
+    "mediumPeriod": 50,
+    "slowPeriod": 200,
+    "slopeLookbackBars": 10
+  },
+  "enabledByDefault": true
+}

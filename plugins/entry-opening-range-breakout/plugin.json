@@ -1,0 +1,26 @@
+{
+  "id": "entry-opening-range-breakout",
+  "name": "Ruptura del rango de apertura",
+  "version": "1.0.0",
+  "author": "TRF core",
+  "description": "Entra en la dirección de la primera ruptura del rango de apertura, una sola vez por sesión.",
+  "apiVersion": 1,
+  "kind": ["entry"],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": [],
+    "warmupBars": 30
+  },
+  "provides": [],
+  "config": {
+    "openingRangeMinutes": 15,
+    "sessionOpenMinute": 570,
+    "lastEntryMinute": 780,
+    "takeProfitPoints": 60,
+    "stopLossPoints": 30,
+    "maxHoldMinutes": 180,
+    "tradeFade": false
+  },
+  "enabledByDefault": true
+}

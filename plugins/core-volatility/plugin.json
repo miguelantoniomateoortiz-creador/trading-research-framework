@@ -1,0 +1,29 @@
+{
+  "id": "core-volatility",
+  "name": "Volatilidad",
+  "version": "1.0.0",
+  "author": "TRF core",
+  "description": "ATR de Wilder, rangos recientes y régimen de volatilidad relativo.",
+  "apiVersion": 1,
+  "kind": ["feature"],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": [],
+    "warmupBars": 120
+  },
+  "provides": [
+    "volatility.atr",
+    "volatility.atrSlow",
+    "volatility.atrRegime",
+    "volatility.atrPercent",
+    "volatility.range5",
+    "volatility.range15",
+    "volatility.range60"
+  ],
+  "config": {
+    "atrPeriod": 14,
+    "atrSlowPeriod": 100
+  },
+  "enabledByDefault": true
+}

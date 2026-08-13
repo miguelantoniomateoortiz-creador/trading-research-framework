@@ -1,0 +1,25 @@
+{
+  "id": "entry-time-of-day",
+  "name": "Entrada por hora fija",
+  "version": "1.0.0",
+  "author": "TRF core",
+  "description": "Abre una operación a un minuto concreto de la sesión. Es la regla base para estudiar la apertura del NAS100: no filtra nada, sólo genera la población de observaciones.",
+  "apiVersion": 1,
+  "kind": ["entry"],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": [],
+    "warmupBars": 0
+  },
+  "provides": [],
+  "config": {
+    "entryMinute": 570,
+    "direction": "both",
+    "takeProfitPoints": 40,
+    "stopLossPoints": 40,
+    "maxHoldMinutes": 120,
+    "daysOfWeek": [1, 2, 3, 4, 5]
+  },
+  "enabledByDefault": true
+}

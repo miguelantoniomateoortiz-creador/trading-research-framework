@@ -1,0 +1,22 @@
+{
+  "name": "@trf/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "API HTTP local que expone el laboratorio al dashboard (nivel 8).",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@trf/analyzer": "workspace:*",
+    "@trf/database": "workspace:*",
+    "@trf/importer": "workspace:*",
+    "@trf/plugin-sdk": "workspace:*",
+    "@trf/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.1"
+  }
+}

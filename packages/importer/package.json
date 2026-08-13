@@ -1,0 +1,19 @@
+{
+  "name": "@trf/importer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Importación de datos históricos de MT5 (CSV/JSON) y generación de datos sintéticos.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@trf/database": "workspace:*",
+    "@trf/shared": "workspace:*"
+  }
+}

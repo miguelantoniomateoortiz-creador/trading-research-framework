@@ -1,0 +1,32 @@
+{
+  "id": "core-candle",
+  "name": "Anatomía de la vela",
+  "version": "1.0.0",
+  "author": "TRF core",
+  "description": "Cuerpo, mechas, proporciones y rachas de velas consecutivas sobre la última vela cerrada antes de la entrada.",
+  "apiVersion": 1,
+  "kind": ["feature"],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": [],
+    "warmupBars": 5
+  },
+  "provides": [
+    "candle.range",
+    "candle.body",
+    "candle.upperWick",
+    "candle.lowerWick",
+    "candle.bodyRatio",
+    "candle.upperWickRatio",
+    "candle.lowerWickRatio",
+    "candle.isBullish",
+    "candle.consecutiveBullish",
+    "candle.consecutiveBearish",
+    "candle.avgRange5"
+  ],
+  "config": {
+    "averageRangeBars": 5
+  },
+  "enabledByDefault": true
+}

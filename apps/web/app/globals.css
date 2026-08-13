@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-base-950 text-base-100 antialiased;
+}
+
+::selection {
+  @apply bg-accent-dim text-base-100;
+}
+
+/* Scrollbar discreta, a tono con el resto de la interfaz. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-base-700 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-base-600;
+}
+
+.panel {
+  @apply rounded-lg border border-base-800 bg-base-900;
+}
+
+.table-cell {
+  @apply px-3 py-2 text-sm;
+}
+
+.input {
+  @apply rounded border border-base-700 bg-base-850 px-2 py-1.5 text-sm text-base-100;
+}
+
+.btn-primary {
+  @apply rounded bg-accent px-4 py-1.5 text-sm font-medium text-base-950 disabled:opacity-50;
+}

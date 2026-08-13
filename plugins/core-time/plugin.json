@@ -1,0 +1,30 @@
+{
+  "id": "core-time",
+  "name": "Calendario y sesión",
+  "version": "1.0.0",
+  "author": "TRF core",
+  "description": "Variables de calendario derivadas en la zona horaria del mercado: hora, minuto, día, sesión y distancia a la apertura.",
+  "apiVersion": 1,
+  "kind": ["feature"],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": [],
+    "warmupBars": 0
+  },
+  "provides": [
+    "time.minuteOfDay",
+    "time.hour",
+    "time.minute",
+    "time.dayOfWeek",
+    "time.dayOfMonth",
+    "time.month",
+    "time.year",
+    "time.minutesFromOpen",
+    "time.minutesToClose",
+    "time.session",
+    "time.isRegularSession"
+  ],
+  "config": {},
+  "enabledByDefault": true
+}

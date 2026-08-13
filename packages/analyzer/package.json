@@ -1,0 +1,20 @@
+{
+  "name": "@trf/analyzer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Motor de análisis: matriz columnar, predicados componibles, métricas por cohorte, análisis marginal y simulador de operaciones.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@trf/database": "workspace:*",
+    "@trf/plugin-sdk": "workspace:*",
+    "@trf/shared": "workspace:*"
+  }
+}

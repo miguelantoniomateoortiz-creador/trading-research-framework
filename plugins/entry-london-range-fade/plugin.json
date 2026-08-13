@@ -1,0 +1,27 @@
+{
+  "id": "entry-london-range-fade",
+  "name": "Reversión en el rango de Londres",
+  "version": "1.0.0",
+  "author": "TRF research",
+  "description": "Construye el rango de precio de la sesión de Londres (3:00–8:00 hora de Nueva York) y opera en contra si el precio toca alguno de sus extremos: venta si toca el techo del rango, compra si toca el piso. Una sola operación por día — la primera que se toca cancela a la otra. Los horarios se calculan en hora de Nueva York, con el cambio de horario de verano manejado automáticamente por el motor.",
+  "apiVersion": 1,
+  "kind": [
+    "entry"
+  ],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": [],
+    "warmupBars": 5
+  },
+  "provides": [],
+  "config": {
+    "rangeStartMinute": 180,
+    "rangeEndMinute": 480,
+    "lastEntryMinute": 1439,
+    "takeProfitPoints": 60,
+    "stopLossPoints": 30,
+    "maxHoldMinutes": 240
+  },
+  "enabledByDefault": true
+}

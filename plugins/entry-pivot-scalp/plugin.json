@@ -1,0 +1,37 @@
+{
+  "id": "entry-pivot-scalp",
+  "name": "Scalping en pivotes clásicos (M1)",
+  "version": "1.0.0",
+  "author": "TRF core",
+  "description": "Calcula los pivotes de piso (PP, R1-R3, S1-S3) del día anterior y opera en reversión cada vez que el precio toca uno de esos niveles: rebote esperado en la dirección contraria a la que trae. TP/SL simétricos a propósito, para que cualquier ventaja que encuentre Discovery entre las 70 variables sea real y no un efecto del tamaño del objetivo.",
+  "apiVersion": 1,
+  "kind": [
+    "entry"
+  ],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": [],
+    "warmupBars": 0
+  },
+  "provides": [],
+  "config": {
+    "levels": [
+      "r3",
+      "r2",
+      "r1",
+      "pp",
+      "s1",
+      "s2",
+      "s3"
+    ],
+    "touchTolerancePoints": 8,
+    "cooldownMinutes": 20,
+    "takeProfitPoints": 15,
+    "stopLossPoints": 15,
+    "maxHoldMinutes": 45,
+    "sessionStartMinute": 570,
+    "sessionEndMinute": 960
+  },
+  "enabledByDefault": false
+}

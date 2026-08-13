@@ -1,0 +1,29 @@
+{
+  "id": "entry-opening-reversal",
+  "name": "Reversión confirmada de la apertura",
+  "version": "1.0.0",
+  "author": "TRF research",
+  "description": "Entra en contra del impulso inicial SÓLO tras confirmar un retroceso real, no en el instante de la ruptura (a diferencia de entry-opening-range-breakout con tradeFade=true). Pensado para contrastar la hipótesis de reversión del NAS100 con una regla que espera confirmación en vez de adivinar a ciegas.",
+  "apiVersion": 1,
+  "kind": ["entry"],
+  "entry": "./src/index.ts",
+  "requires": {
+    "timeframes": [],
+    "features": [],
+    "warmupBars": 30
+  },
+  "provides": [],
+  "config": {
+    "openingRangeMinutes": 15,
+    "sessionOpenMinute": 570,
+    "atrPeriod": 14,
+    "minImpulseAtr": 0.5,
+    "confirmPullbackFraction": 0.5,
+    "maxPullbackFraction": 1.5,
+    "lastEntryMinute": 780,
+    "takeProfitPoints": 50,
+    "stopLossPoints": 25,
+    "maxHoldMinutes": 180
+  },
+  "enabledByDefault": true
+}

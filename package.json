@@ -1,0 +1,33 @@
+{
+  "name": "trading-research-framework",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Laboratorio de investigación cuantitativa para descubrir ventajas estadísticas en mercados financieros (NAS100 / MT5).",
+  "engines": {
+    "node": ">=20.11.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "clean": "rm -rf packages/*/dist apps/*/dist plugins/*/dist **/*.tsbuildinfo",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "pnpm --filter @trf/database run generate",
+    "db:migrate": "pnpm --filter @trf/database run migrate",
+    "db:reset": "pnpm --filter @trf/database run reset",
+    "db:studio": "pnpm --filter @trf/database run studio",
+    "trf": "tsx apps/cli/src/main.ts",
+    "api": "tsx apps/api/src/main.ts",
+    "web": "pnpm --filter @trf/web run dev",
+    "bootstrap": "pnpm install && pnpm db:generate && pnpm db:migrate"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "dukascopy-node": "^1.50.0",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.3"
+  }
+}

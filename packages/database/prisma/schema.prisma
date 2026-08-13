@@ -1,0 +1,367 @@
+// =============================================================================
+// Trading Research Framework — esquema de datos
+// =============================================================================
+//
+// DECISIÓN CLAVE: esquema HÍBRIDO (columnas fijas + blob JSON + registro).
+//
+// El requisito "poder añadir variables dinámicamente sin estructura rígida"
+// admite tres soluciones y sólo una escala:
+//
+//   1. EAV (una fila por variable y operación). Máxima flexibilidad, pero
+//      10M operaciones x 80 variables = 800M filas. Cada consulta necesita
+//      un self-join por variable. Inviable.
+//   2. ALTER TABLE por variable. Rapidísimo de leer, pero cada plugin nuevo
+//      migra el esquema; SQLite bloquea la tabla y se rompe la premisa de
+//      "no tocar el núcleo al añadir una idea".
+//   3. HÍBRIDO (el elegido): columnas nativas para lo que se consulta en
+//      TODOS los análisis (tiempo, dirección, P&L, recorrido) + un blob JSON
+//      para las variables de plugins + una tabla `VariableDefinition` que
+//      describe cada clave del blob.
+//
+// El blob JSON no es un agujero negro: `VariableDefinition` le da tipo,
+// unidad, causalidad y procedencia. Y para las variables que se vuelven
+// "calientes" existe `materializeFeature()` en src/raw/materialize.ts, que
+// crea una columna generada + índice sobre `json_extract(features, '$.clave')`.
+// Es decir: empieza flexible, se optimiza sin migrar datos.
+//
+// Ver docs/adr/0001-esquema-hibrido.md para el análisis completo.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  // Ruta relativa a este archivo -> <raíz del repo>/data/db/trf.db
+  url      = "file:../../../data/db/trf.db"
+}
+
+// -----------------------------------------------------------------------------
+// Mercado
+// -----------------------------------------------------------------------------
+
+/// Instrumento negociable. La zona horaria del mercado vive aquí porque todas
+/// las variables de calendario se derivan en ella.
+model Instrument {
+  id          String @id
+  symbol      String @unique
+  description String @default("")
+
+  /// IANA timezone del mercado subyacente (NAS100 -> America/New_York).
+  sessionTimezone String @default("America/New_York")
+  tickSize        Float  @default(0.1)
+  pointValue      Float  @default(1)
+
+  /// Minutos desde medianoche (hora del mercado) de apertura/cierre regular.
+  regularSessionOpenMinute  Int @default(570)
+  regularSessionCloseMinute Int @default(960)
+
+  createdAt DateTime @default(now())
+
+  bars         Bar[]
+  trades       Trade[]
+  splits       DatasetSplit[]
+  importBatches ImportBatch[]
+
+  @@map("instruments")
+}
+
+/// Vela OHLCV.
+///
+/// `ts` es epoch MILISEGUNDOS UTC de la APERTURA de la vela, almacenado como
+/// REAL. Motivo: el `Int` de Prisma es de 32 bits y se desborda con epoch ms;
+/// `BigInt` obligaría a convertir en cada lectura. Un double representa
+/// exactamente cualquier entero por debajo de 2^53, así que no hay pérdida.
+model Bar {
+  id           Int    @id @default(autoincrement())
+  instrumentId String
+  timeframe    String
+  ts           Float
+
+  open       Float
+  high       Float
+  low        Float
+  close      Float
+  tickVolume Float @default(0)
+  volume     Float @default(0)
+  spread     Float @default(0)
+
+  instrument Instrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+
+  /// Clave natural: hace la importación idempotente (reimportar el mismo CSV
+  /// no duplica velas) y es el índice que sirve todas las consultas de rango.
+  @@unique([instrumentId, timeframe, ts], name: "bar_natural_key")
+  @@index([instrumentId, timeframe, ts])
+  @@map("bars")
+}
+
+// -----------------------------------------------------------------------------
+// Operaciones
+// -----------------------------------------------------------------------------
+
+/// Regla de entrada: un plugin de entrada con una configuración concreta.
+/// Dos configuraciones distintas del mismo plugin son dos reglas distintas,
+/// para poder compararlas.
+model EntryRule {
+  id          String @id
+  pluginId    String
+  name        String
+  description String @default("")
+  /// Configuración serializada; forma parte de la identidad de la regla.
+  configJson  String @default("{}")
+  /// Hash de (pluginId + version + config). Detecta reglas duplicadas.
+  fingerprint String @unique
+
+  createdAt DateTime @default(now())
+
+  trades Trade[]
+
+  @@map("entry_rules")
+}
+
+/// Lote de importación. Todo dato ingerido pertenece a un lote, lo que permite
+/// deshacer una importación completa y auditar la procedencia.
+model ImportBatch {
+  id           String @id
+  instrumentId String
+  /// "mt5-bars-csv", "mt5-deals-csv", "mt5-json", "synthetic"...
+  format       String
+  sourceFile   String @default("")
+  /// SHA-256 del archivo: reimportar el mismo fichero es un no-op detectable.
+  sourceHash   String @default("")
+
+  rowsRead     Int @default(0)
+  rowsAccepted Int @default(0)
+  rowsRejected Int @default(0)
+
+  /// Primeros N errores de parseo, serializados. Para diagnóstico.
+  errorsJson String @default("[]")
+
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  instrument Instrument @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  trades     Trade[]
+
+  @@index([instrumentId, startedAt])
+  @@map("import_batches")
+}
+
+/// LA UNIDAD DE ANÁLISIS.
+///
+/// No es necesariamente una operación ejecutada: es una observación del tipo
+/// "bajo esta regla, en este instante, esto habría pasado". Las operaciones
+/// reales de MT5 son el caso `source = "broker"`.
+model Trade {
+  id           String @id
+  instrumentId String
+  entryRuleId  String
+  importBatchId String?
+
+  /// "simulated" | "broker" | "manual"
+  source    String @default("simulated")
+  /// "long" | "short"
+  direction String
+
+  entryTs Float
+  exitTs  Float
+
+  entryPrice        Float
+  exitPrice         Float
+  takeProfitPrice   Float?
+  stopLossPrice     Float?
+
+  pnlPoints       Float
+  pnlMoney        Float
+  volumeLots      Float  @default(1)
+  /// "take_profit" | "stop_loss" | "time_limit" | "signal" | "session_end" | "unknown"
+  exitReason      String @default("unknown")
+  durationMinutes Float
+
+  // --- Recorrido (VARIABLES DE RESULTADO: nunca predictores) ----------------
+  mae                  Float @default(0)
+  mfe                  Float @default(0)
+  minutesToMae         Float @default(0)
+  minutesToMfe         Float @default(0)
+  maxSpeedPointsPerMin Float @default(0)
+  slopePointsPerMin    Float @default(0)
+  pullbackCount        Int   @default(0)
+  efficiency           Float @default(0)
+
+  // --- Calendario, desnormalizado en la zona del mercado --------------------
+  // Se duplica a propósito: son los filtros más usados y derivarlos en cada
+  // consulta con json_extract o funciones de fecha cuesta órdenes de magnitud.
+  sessionDate String
+  year        Int
+  month       Int
+  dayOfMonth  Int
+  dayOfWeek   Int
+  hour        Int
+  minute      Int
+  minuteOfDay Int
+
+  /// Variables aportadas por plugins, JSON plano { "clave": number|null }.
+  /// Consultable con json_extract(); indexable con materializeFeature().
+  features String @default("{}")
+
+  /// Versión del conjunto de plugins con el que se calcularon las features.
+  /// Si cambia, `trf features:build` sabe qué operaciones recalcular.
+  featureSetVersion String @default("")
+
+  createdAt DateTime @default(now())
+
+  instrument  Instrument   @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  entryRule   EntryRule    @relation(fields: [entryRuleId], references: [id], onDelete: Cascade)
+  importBatch ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+
+  @@index([instrumentId, entryTs])
+  @@index([entryRuleId, entryTs])
+  @@index([instrumentId, sessionDate])
+  @@index([minuteOfDay])
+  @@index([featureSetVersion])
+  @@map("trades")
+}
+
+// -----------------------------------------------------------------------------
+// Metadatos: el registro que hace legible el blob JSON
+// -----------------------------------------------------------------------------
+
+/// Describe cada clave que puede aparecer en `Trade.features`.
+/// Sin esta tabla el blob JSON sería datos sin semántica.
+model VariableDefinition {
+  key         String @id
+  label       String
+  description String @default("")
+
+  /// "continuous" | "ordinal" | "categorical" | "boolean"
+  valueType String
+  /// "predictor" | "outcome" | "meta"  <- la guarda anti-lookahead
+  causality String
+  unit      String @default("")
+
+  producedBy      String
+  producerVersion String
+
+  /// Categorías y binning sugerido, serializados.
+  categoriesJson String?
+  binningJson    String?
+  rangeJson      String?
+
+  /// true si existe una columna materializada + índice para esta variable.
+  materialized Boolean @default(false)
+
+  updatedAt DateTime @updatedAt
+
+  @@index([producedBy])
+  @@index([causality])
+  @@map("variable_definitions")
+}
+
+/// Plugin instalado y su estado.
+model PluginInstall {
+  id          String  @id
+  version     String
+  name        String
+  author      String  @default("")
+  description String  @default("")
+  /// Ruta relativa desde la raíz del repo.
+  directory   String
+  enabled     Boolean @default(true)
+  /// Configuración efectiva (defaults del manifiesto + overrides del usuario).
+  configJson  String  @default("{}")
+
+  installedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("plugin_installs")
+}
+
+// -----------------------------------------------------------------------------
+// Metodología: splits e hipótesis
+// -----------------------------------------------------------------------------
+
+/// Partición temporal de los datos. La validación NUNCA se mezcla con el
+/// entrenamiento; el motor comprueba el solapamiento (incluido el embargo)
+/// antes de dejar ejecutar nada.
+model DatasetSplit {
+  id           String @id
+  name         String
+  instrumentId String
+  /// "training" | "validation" | "holdout"
+  role         String
+  startTs      Float
+  endTs        Float
+  /// Días de embargo tras el final del training antes de empezar validación.
+  embargoDays  Int    @default(5)
+  description  String @default("")
+
+  /// Cuántas veces se ha evaluado algo contra este split.
+  /// Si un split de validación se usa 30 veces, ya no es fuera de muestra.
+  evaluationCount Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  instrument      Instrument       @relation(fields: [instrumentId], references: [id], onDelete: Cascade)
+  validationRuns  ValidationRun[]
+
+  @@unique([instrumentId, name])
+  @@index([instrumentId, role])
+  @@map("dataset_splits")
+}
+
+/// Una hipótesis: un predicado sobre variables predictoras, con los umbrales
+/// que se le exigieron y el resultado obtenido en entrenamiento.
+model Hypothesis {
+  id          String @id
+  name        String
+  description String @default("")
+
+  /// AST del predicado, serializado (ver @trf/analyzer/predicate).
+  predicateJson String
+  /// Variables usadas; permite buscar hipótesis por variable.
+  variablesJson String @default("[]")
+
+  /// Criterios que se exigieron al descubrirla (WR mínimo, PF mínimo...).
+  criteriaJson String @default("{}")
+  /// Métricas obtenidas en el split de entrenamiento.
+  trainingMetricsJson String @default("{}")
+
+  /// Cuántas combinaciones se probaron en la búsqueda que la produjo.
+  /// Sin este número, el p-valor de la hipótesis no significa nada.
+  searchSpaceSize Int @default(1)
+
+  /// "draft" | "training_passed" | "validated" | "rejected" | "retired"
+  status String @default("draft")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  runs ValidationRun[]
+
+  @@index([status])
+  @@map("hypotheses")
+}
+
+/// Cada evaluación de una hipótesis contra un split. Inmutable: es el
+/// cuaderno de laboratorio.
+model ValidationRun {
+  id           String @id
+  hypothesisId String
+  splitId      String
+
+  metricsJson String @default("{}")
+  /// p-valor y q-valor tras corregir por el tamaño del espacio de búsqueda.
+  pValue      Float?
+  qValue      Float?
+  passed      Boolean @default(false)
+  notes       String  @default("")
+
+  ranAt DateTime @default(now())
+
+  hypothesis Hypothesis   @relation(fields: [hypothesisId], references: [id], onDelete: Cascade)
+  split      DatasetSplit @relation(fields: [splitId], references: [id], onDelete: Cascade)
+
+  @@index([hypothesisId, ranAt])
+  @@map("validation_runs")
+}
